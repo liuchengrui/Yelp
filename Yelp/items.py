@@ -1,0 +1,53 @@
+# -*- coding: utf-8 -*-
+
+# Define here the models for your scraped items
+#
+# See documentation in:
+# https://doc.scrapy.org/en/latest/topics/items.html
+
+from scrapy import Item,Field
+
+
+class RestaurantItem(Item):
+    # define the fields for your item here like:
+    table_name = 'restaurantTable'
+    restaurant = Field()
+    rest_url = Field()
+    score = Field()
+    total_reviews = Field()
+    category = Field()
+    address = Field()
+    phone = Field()
+
+class CommentItem(Item):
+    table_name = 'commentTable'
+    restaurant = Field()
+    rest_url = Field()
+    review_id = Field()
+    user_id = Field()
+    score = Field()
+    date = Field()
+    comment = Field()
+    useful = Field()
+    funny = Field()
+    cool = Field()
+    label = Field()
+
+class UserItem(Item):
+    table_name = 'userTable'
+    user_avatar = Field()
+    user_url = Field()
+    user_id = Field()
+    user_name = Field()
+    data_hovercard_id = Field()
+    user_location = Field()
+    friends = Field()
+    revs = Field()
+    photos = Field()
+    countFive = Field()
+    countFour = Field()
+    countThree = Field()
+    countTwo = Field()
+    countOne = Field()
+    lastDate = Field()
+
