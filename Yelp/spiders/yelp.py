@@ -59,7 +59,6 @@ class YelpSpider(Spider):
 
     # 解析评论信息
     def parse_comment(self, response):
-        print('??????????')
         reviews = response.xpath('//div[@class="review-list"]/ul/li/div[@class="review review--with-sidebar"]')
         restaurant = response.meta['restaurant']
         rest_url = response.url
