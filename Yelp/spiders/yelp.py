@@ -7,34 +7,31 @@ from scrapy import Spider,Request
 from Yelp.items import RestaurantItem, CommentItem, UserItem
 import re
 from multiprocessing import Pool
-
+import Yelp.settings as st
 class YelpSpider(Spider):
     name = 'yelp'
     allowed_domains = ['https://www.yelp.com']
     base_url = 'https://www.yelp.com'
-    start_urls = ['https://www.yelp.com/search?find_desc=Restaurants&find_loc=Toronto&start={start}&request_origin=user','https://www.yelp.com/search?find_desc=Restaurants&find_loc=Paris&start={start}&request_origin=user','https://www.yelp.com/search?find_desc=Restaurants&find_loc=London&start={start}&request_origin=user','https://www.yelp.com/search?find_desc=Restaurants&find_loc=Washington&start={start}&request_origin=user','https://www.yelp.com/search?find_desc=Restaurants&find_loc=Berlin&start={start}&request_origin=user']
-
+    #start_urls = ['https://www.yelp.com/search?find_desc=Restaurants&find_loc=Toronto&start={start}&request_origin=user','https://www.yelp.com/search?find_desc=Restaurants&find_loc=Paris&start={start}&request_origin=user','https://www.yelp.com/search?find_desc=Restaurants&find_loc=London&start={start}&request_origin=user','https://www.yelp.com/search?find_desc=Restaurants&find_loc=Washington&start={start}&request_origin=user','https://www.yelp.com/search?find_desc=Restaurants&find_loc=Berlin&start={start}&request_origin=user']
+    start_url = st.START_URL
     def start_requests(self):
-        for start_url in self.start_urls:
-            for i in range(0, 31, 30):
-                yield Request(start_url.format(start=i), callback=self.parse_index)
+        yield Request(self.start_url, meta={'restaurant':'Freemans'},callback=self.parse_detail,dont_filter=True)
+        yield Request(url=self.start_url, meta={'restaurant':'Freemans'}, callback=self.parse_comment, dont_filter=True)
 
-
-
-
-    def parse_index(self,response):
-        print("首页信息")
-        rest_urls = response.xpath('//h3[@class="lemon--h3__373c0__sQmiG heading--h3__373c0__1n4Of alternate__373c0__1uacp"]')
-        for rest_url in rest_urls:
-            rest = rest_url.xpath('.//a[@class="lemon--a__373c0__IEZFH link__373c0__29943 link-color--blue-dark__373c0__1mhJo link-size--inherit__373c0__2JXk5"]//@href').extract_first()
-            name = rest_url.xpath('.//a[@class="lemon--a__373c0__IEZFH link__373c0__29943 link-color--blue-dark__373c0__1mhJo link-size--inherit__373c0__2JXk5"]//text()').extract_first()
-            #print(rest)
-            url = self.base_url+str(rest)
-            #print(url)
-            # 爬取餐厅信息
-            yield Request(url=url,meta={'restaurant':name},callback=self.parse_detail,dont_filter=True)
-            # 爬取评论
-            yield Request(url=url,meta={'restaurant':name},callback=self.parse_comment,dont_filter=True)
+    # 那这个就没得用啦
+    # def parse_index(self,response):
+    #     print("首页信息")
+    #     rest_urls = response.xpath('//h3[@class="lemon--h3__373c0__sQmiG heading--h3__373c0__1n4Of alternate__373c0__1uacp"]')
+    #     for rest_url in rest_urls:
+    #         rest = rest_url.xpath('.//a[@class="lemon--a__373c0__IEZFH link__373c0__29943 link-color--blue-dark__373c0__1mhJo link-size--inherit__373c0__2JXk5"]//@href').extract_first()
+    #         name = rest_url.xpath('.//a[@class="lemon--a__373c0__IEZFH link__373c0__29943 link-color--blue-dark__373c0__1mhJo link-size--inherit__373c0__2JXk5"]//text()').extract_first()
+    #         #print(rest)
+    #         url = self.base_url+str(rest)
+    #         #print(url)
+    #         # 爬取餐厅信息
+    #         yield Request(url=url,meta={'restaurant':name},callback=self.parse_detail,dont_filter=True)
+    #         # 爬取评论
+    #         yield Request(url=url,meta={'restaurant':name},callback=self.parse_comment,dont_filter=True)
 
 
 
@@ -79,7 +76,7 @@ class YelpSpider(Spider):
             score = review.xpath('.//div[@class="review-wrapper"]/div/div/div[@class="biz-rating__stars"]/div//@title').re_first("(.*?) star rating")
             date = review.xpath('.//div[@class="review-wrapper"]/div/div/span[@class="rating-qualifier"]//text()').extract_first().strip()
             comment = review.xpath('.//div[@class="review-wrapper"]/div[@class="review-content"]/p//text()').extract_first()
-            have_pic = (1 if review.xpath('.//div[@class="review-wrapper"]/div/div/ul[@class="photo-box-grid clearfix js-content-expandable lightbox-media-parent"]') else 0)
+            have_pic = (1 if review.xpath('.//div[@class="review-wrapper"]//ul[@class="photo-box-grid clearfix js-content-expandable lightbox-media-parent"]') else 0)
             useful = (review.xpath('.//div[@class="review-wrapper"]/div[@class="review-footer clearfix"]/div/ul/li/a[contains(@rel,"useful")]/span[@class="count"]//text()').extract_first() if review.xpath('.//div[@class="review-wrapper"]/div[@class="review-footer clearfix"]/div/ul/li/a[contains(@rel,"useful")]/span[@class="count"]//text()') else 0)
             funny = (review.xpath('.//div[@class="review-wrapper"]/div[@class="review-footer clearfix"]/div/ul/li/a[contains(@rel,"funny")]/span[@class="count"]//text()').extract_first() if review.xpath('.//div[@class="review-wrapper"]/div[@class="review-footer clearfix"]/div/ul/li/a[contains(@rel,"funny")]/span[@class="count"]//text()') else 0)
             cool = (review.xpath('.//div[@class="review-wrapper"]/div[@class="review-footer clearfix"]/div/ul/li/a[contains(@rel,"cool")]/span[@class="count"]//text()').extract_first() if review.xpath('.//div[@class="review-wrapper"]/div[@class="review-footer clearfix"]/div/ul/li/a[contains(@rel,"cool")]/span[@class="count"]//text()') else 0)
@@ -124,8 +121,16 @@ class YelpSpider(Spider):
         countThree = response.css('.histogram_count::text').extract()[2]
         countTwo = response.css('.histogram_count::text').extract()[3]
         countOne= response.css('.histogram_count::text').extract()[4]
-
-        
+        user_useful = 0
+        user_funny = 0
+        user_cool = 0
+        for i in response.xpath('//ul[@class="ylist ylist--condensed"]/li').extract():
+            if 'Useful' in str(i):
+                user_useful = re.findall('<strong>(.*?)</strong>', str(i))[0]
+            if 'Funny' in str(i):
+                user_funny = re.findall('<strong>(.*?)</strong>', str(i))[0]
+            if 'Cool' in str(i):
+                user_cool = re.findall('<strong>(.*?)</strong>', str(i))[0]
 
         lastDate = response.xpath('//div[@class="review-content"]/div[@class="review-content"]/div/span//text()').extract_first()
         itemUser = UserItem()
@@ -153,11 +158,11 @@ class YelpSpider(Spider):
                 user_avatar = False
             user_name = review.xpath('.//div[@class="review-sidebar"]/div/div/div[@class="media-story"]/ul[@class="user-passport-info"]/li[@class="user-name"]/span//text()').extract_first()
             print('爬不好的user')
-            user_id = "data-hovercard-id:"+str(review.xpath('//@data-hovercard-id').extract_first())
+            user_id = "data-hovercard-id:"+str(review.xpath('.//@data-hovercard-id').extract_first())
             review_id = review.xpath('.//@data-review-id').extract_first()
             friends = review.xpath('.//div[@class="review-sidebar"]/div/div/div[@class="media-story"]/ul[@class="user-passport-stats"]/li[@class="friend-count responsive-small-display-inline-block"]/b//text()').extract_first()
-            revs = review.xpath('.//div[@class="review-sidebar"]/div/div/div[@class="media-story"]/ul[@class="user-passport-stats"]/li[@class="review-count responsive-small-display-inline-block"]/b//text()').extract_first()
-            photos = review.xpath('.//div[@class="review-sidebar"]/div/div[@class="ypassport media-block"]/div[@class="media-story"]/ul[@class="user-passport-stats"]/li[@class="photo-count responsive-small-display-inline-block"]/b//text()').extract_first()
+            reviews = review.xpath('.//div[@class="review-sidebar"]/div/div/div[@class="media-story"]/ul[@class="user-passport-stats"]/li[@class="review-count responsive-small-display-inline-block"]/b//text()').extract_first()
+            photos = (response.xpath('//div[@class="user-profile_info arrange_unit"]/div[@class="clearfix"]/ul/li[@class="photo-count"]/strong//text()').extract_first() if response.xpath('//div[@class="user-profile_info arrange_unit"]/div[@class="clearfix"]/ul/li[@class="photo-count"]/strong//text()').extract_first() else 0)
             user_location = review.xpath('.//div[@class="review-sidebar"]/div/div/div[@class="media-story"]/ul[@class="user-passport-info"]/li[@class="user-location responsive-hidden-small"]/b//text()').extract_first()
             countFive = 0
             countFour = 0
@@ -165,6 +170,9 @@ class YelpSpider(Spider):
             countTwo = 0
             countOne = 0
             lastDate = None
+            user_useful = 0
+            user_funny = 0
+            user_cool = 0
             itemUser = UserItem()
             for field in itemUser.fields:
                 try:
@@ -177,7 +185,7 @@ class YelpSpider(Spider):
 
             score = review.xpath('.//div[@class="review-wrapper"]/div/div/div[@class="biz-rating__stars"]/div//@title').re_first("(.*?) star rating")
             date = review.xpath('.//div[@class="review-wrapper"]/div/div/span[@class="rating-qualifier"]//text()').extract_first().strip()
-            comment = review.xpath('.//div[@class="review-wrapper"]/div/div[@class="biz-rating biz-rating-large biz-rating-large--wrap clearfix"]/p//text()').extract_first()
+            comment = review.xpath('.//div[@class="review-wrapper"]//p//text()').extract_first()
             have_pic = (1 if review.xpath('.//div[@class="review-wrapper"]/div/div/ul[@class="photo-box-grid clearfix js-content-expandable lightbox-media-parent"]') else 0)
             useful = (review.xpath('.//div[@class="review-wrapper"]/div[@class="review-footer clearfix"]/div/ul/li/a[contains(@rel,"useful")]/span[@class="count"]//text()').extract_first() if review.xpath('.//div[@class="review-wrapper"]/div[@class="review-footer clearfix"]/div/ul/li/a[contains(@rel,"useful")]/span[@class="count"]//text()') else 0)
             funny = (review.xpath('.//div[@class="review-wrapper"]/div[@class="review-footer clearfix"]/div/ul/li/a[contains(@rel,"funny")]/span[@class="count"]//text()').extract_first() if review.xpath('.//div[@class="review-wrapper"]/div[@class="review-footer clearfix"]/div/ul/li/a[contains(@rel,"funny")]/span[@class="count"]//text()') else 0)

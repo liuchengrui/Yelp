@@ -14,10 +14,10 @@ class MongoPipeline(object):
         self.mongo_db = mongo_db
 
     @classmethod
-    def from_crawler(cls, crawler):
+    def from_crawler(cls, crawler,item):
         return cls(
             mongo_uri=crawler.settings.get('MONGO_URI'),
-            mongo_db=crawler.settings.get('DATABASE')
+            mongo_db=crawler.request.get('url')
         )
 
     def open_spider(self, spider):

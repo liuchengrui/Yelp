@@ -47,16 +47,19 @@ DEFAULT_REQUEST_HEADERS = {
 
 # Enable or disable spider middlewares
 # See https://doc.scrapy.org/en/latest/topics/spider-middleware.html
-# SPIDER_MIDDLEWARES = {
-#     'Yelp.middlewares.ProxyMiddleware': 543,
-#
-# }
+SPIDER_MIDDLEWARES = {
+    #'Yelp.middlewares.ProxyMiddleware': 100,
+    'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 210,
+
+}
 
 # Enable or disable downloader middlewares
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
-    'Yelp.middlewares.ProxyMiddleware': 200,
+    'Yelp.middlewares.ProxyMiddleware': 100,
     'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 210,
+    'Yelp.middlewares.YelpSpiderMiddleware':80,
+    'Yelp.middlewares.YelpDownloaderMiddleware':60
     #设置不参与scrapy的自动重试的动作
     #'scrapy.downloadermiddlewares.retry.RetryMiddleware': None
 }
@@ -96,7 +99,7 @@ ITEM_PIPELINES = {
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 PROXY_POOL_URL = 'http://localhost:5000/get'
 
-RETRY_TIMES = 5
-
 MONGO_URI = 'localhost'
 DATABASE = 'yelp'
+
+START_URL = 'https://www.yelp.com/biz/barrafina-london-5'

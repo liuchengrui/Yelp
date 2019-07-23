@@ -32,6 +32,7 @@ class CommentItem(Item):
     funny = Field()
     cool = Field()
     label = Field()
+    have_pic = Field()
 
 class UserItem(Item):
     table_name = 'userTable'
@@ -42,7 +43,7 @@ class UserItem(Item):
     data_hovercard_id = Field()
     user_location = Field()
     friends = Field()
-    revs = Field()
+    reviews = Field()
     photos = Field()
     countFive = Field()
     countFour = Field()
@@ -50,4 +51,7 @@ class UserItem(Item):
     countTwo = Field()
     countOne = Field()
     lastDate = Field()
+    user_useful = Field()
+    user_funny = Field()
+    user_cool = Field()
 
